@@ -15,11 +15,11 @@ tile_px = 20
 grid = [[0 for _ in range(N)] for _ in range(N)]
 reserved = [[False for _ in range(N)] for _ in range(N)]
 
-####### Block off space
+''' Block off space
 for r in range(7):
     for c in range(7):
         reserved[r][c] = True
-        #grid[r][c] = 1   # draw it black so you SEE it
+        #grid[r][c] = 1   # draw it black so you SEE it'''
 
 #Get my window going
 root = tk.Tk()
@@ -51,9 +51,10 @@ positions = []
 col = N - 1
 up = True
 
+# Column count
 while col > 0:
-    if col == 6:  # skip timing column later (QR rule placeholder)
-        col -= 1
+    #if col == 6:  # skip timing column later (QR rule placeholder)
+    #    col -= 1
 
     rows = range(N - 1, -1, -1) if up else range(N)
     for r in rows:
@@ -63,25 +64,57 @@ while col > 0:
     up = not up
     col -= 2
 
-def step(i=0):
-    # advance i until we find a non-reserved cell
-    while i < len(positions):
-        r, c = positions[i]
+# hardcoded "0100"
+url = 'www.x.com'
+length_bits = format(len(url), "08b")
+
+bits = []
+
+# Encode URL characters as 8-bit ASCII
+for ch in url:
+    byte = format(ord(ch), "08b")   # e.g. 'w' -> '01110111'
+    bits.extend(int(b) for b in byte)
+
+
+# Mode indicator: BYTE = 0100
+bits.extend([0, 1, 0, 0])
+
+# Character count (8 bits)
+bits.extend(int(b) for b in length_bits)
+bit_i = 0
+
+def step(pos_i=0):
+    global bit_i
+
+    # stop once we placed all hardcoded bits
+    #if bit_i >= len(bits):
+    #    return
+
+    # advance pos_i until we find a non-reserved cell
+    while pos_i < len(positions):
+        r, c = positions[pos_i]
         if not reserved[r][c]:
             break
-        i += 1
+        pos_i += 1
 
-    if i >= len(positions):
+    if pos_i >= len(positions):
         return
 
-    r, c = positions[i]
-    grid[r][c] = 1
+    r, c = positions[pos_i]
+    if bit_i < len(bits):
+        grid[r][c] = bits[bit_i]  # first 4: 0 1 0 0
+        bit_i += 1
+    else:
+        grid[r][c] = 1  # remainder = black (change to 0 if you want white)
+
     refresh()
-    root.after(delay_ms, lambda: step(i + 1))
+    root.after(delay_ms, lambda: step(pos_i + 1))
 
 draw_finder(0, 0, reserved, grid)           # top-left
 draw_finder(0, N - 7, reserved, grid)       # top-right
 draw_finder(N - 7, 0, reserved, grid)       # bottom-left
+
+print("Total bits:", len(bits))
 
 root.after(delay_ms, step)
 root.mainloop()
