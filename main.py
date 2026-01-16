@@ -1,12 +1,11 @@
 import tkinter as tk
 from PIL import Image, ImageTk
 
-tile_px = 200
-grid = [
-    [0, 0, 0],
-    [0, 0, 0],
-    [0, 0, 0],
-]
+N = 21
+
+tile_px = 20
+grid = [[0 for _ in range(N)] for _ in range(N)]
+
 def render(grid, tile_px):
     h, w = len(grid), len(grid[0])
     img = Image.new("RGB", (w * tile_px, h * tile_px), "white")
