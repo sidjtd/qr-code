@@ -2,8 +2,10 @@ import tkinter as tk
 from PIL import Image, ImageTk
 
 tile_px = 200
-grid = [[0]]  # 1x1 white tile
-
+grid = [
+    [0, 1],
+    [1, 0],
+]
 def render(grid, tile_px):
     h, w = len(grid), len(grid[0])
     img = Image.new("RGB", (w * tile_px, h * tile_px), "white")
