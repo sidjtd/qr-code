@@ -1,12 +1,18 @@
+#This is all the GUI window + event loop dependencies
 import tkinter as tk
 from PIL import Image, ImageTk
 
+#Grid numbers total
 N = 21
 
+#Each grid cell drawn as a 20×20 pixel square.
 tile_px = 20
+
 grid = [[0 for _ in range(N)] for _ in range(N)]
 reserved = [[False for _ in range(N)] for _ in range(N)]
 
+
+#Block off space
 for r in range(7):
     for c in range(7):
         reserved[r][c] = True
@@ -48,7 +54,7 @@ refresh()
 x_seconds = 0.1
 delay_ms = int(x_seconds * 100)
 
-#positions = [(r, c) for r in range(3) for c in range(3)]
+#QR fill order:
 positions = []
 
 col = N - 1
