@@ -1,61 +1,79 @@
-#This is all the GUI window + event loop dependencies
+# ======================
+# GUI + QR CONSTRUCTION
+# ======================
+
 import tkinter as tk
 from PIL import Image, ImageTk
 
-#Import my modules
+# Import your modules
 from render import render
 from draw_finder import draw_finder
 from draw_finder import draw_timing
 
-#Grid numbers total
-N = 21
+# ----------------------
+# QR CONFIG
+# ----------------------
 
-#Each grid cell drawn as a 20×20 pixel square.
+N = 21                 # Version 1 QR
 tile_px = 20
 
 grid = [[0 for _ in range(N)] for _ in range(N)]
 reserved = [[False for _ in range(N)] for _ in range(N)]
 
-''' Block off space
-for r in range(7):
-    for c in range(7):
-        reserved[r][c] = True
-        #grid[r][c] = 1   # draw it black so you SEE it'''
+# ----------------------
+# TK WINDOW SETUP
+# ----------------------
 
-#Get my window going
 root = tk.Tk()
 root.title("QR Code")
 root.lift()
-
-#Keep window sticking to the top
 root.attributes("-topmost", True)
 
-img = render(grid, tile_px)
-photo = ImageTk.PhotoImage(img)
+# Force Tk to initialize (macOS fix)
+root.update_idletasks()
 
-label = tk.Label(root)
-label.pack()
+photo = None
+label = None
+
+# ----------------------
+# RENDER / REFRESH
+# ----------------------
 
 def refresh():
+    global photo, label
     img = render(grid, tile_px)
-    photo = ImageTk.PhotoImage(img)
-    label.config(image=photo)
-    label.image = photo  # keep reference so it doesn't disappear
+    photo = ImageTk.PhotoImage(img, master=root)
 
-refresh()
-x_seconds = 0.1
-delay_ms = int(x_seconds * 100)
+    if label is None:
+        label = tk.Label(root, image=photo)
+        label.pack()
+    else:
+        label.config(image=photo)
 
-#QR fill order:
+    # REQUIRED: prevent garbage collection
+    label.image = photo
+
+# ----------------------
+# QR STRUCTURE
+# ----------------------
+
+draw_finder(0, 0, reserved, grid)
+draw_finder(0, N - 7, reserved, grid)
+draw_finder(N - 7, 0, reserved, grid)
+draw_timing(reserved, grid)
+
+# ----------------------
+# DATA PLACEMENT ORDER
+# ----------------------
+
 positions = []
 
 col = N - 1
 up = True
 
-# Column count
 while col > 0:
-    #if col == 6:  # skip timing column later (QR rule placeholder)
-    #    col -= 1
+    if col == 6:        # timing column
+        col -= 1
 
     rows = range(N - 1, -1, -1) if up else range(N)
     for r in rows:
@@ -65,33 +83,37 @@ while col > 0:
     up = not up
     col -= 2
 
-# hardcoded "0100"
-url = 'www.x.com'
-length_bits = format(len(url), "08b")
+# ----------------------
+# DATA → BITS
+# ----------------------
 
+url = "www.x.com"
 bits = []
 
-# Encode URL characters as 8-bit ASCII
-for ch in url:
-    byte = format(ord(ch), "08b")   # e.g. 'w' -> '01110111'
-    bits.extend(int(b) for b in byte)
-
-
-# Mode indicator: BYTE = 0100
+# Mode: BYTE (0100)
 bits.extend([0, 1, 0, 0])
 
-# Character count (8 bits)
+# Length (8 bits)
+length_bits = format(len(url), "08b")
 bits.extend(int(b) for b in length_bits)
+
+# ASCII bytes
+for ch in url:
+    byte = format(ord(ch), "08b")
+    bits.extend(int(b) for b in byte)
+
+print("Total bits:", len(bits))  # should be 84
+
 bit_i = 0
+delay_ms = 10
+
+# ----------------------
+# ANIMATED FILL
+# ----------------------
 
 def step(pos_i=0):
     global bit_i
 
-    # stop once we placed all hardcoded bits
-    #if bit_i >= len(bits):
-    #    return
-
-    # advance pos_i until we find a non-reserved cell
     while pos_i < len(positions):
         r, c = positions[pos_i]
         if not reserved[r][c]:
@@ -102,21 +124,20 @@ def step(pos_i=0):
         return
 
     r, c = positions[pos_i]
+
     if bit_i < len(bits):
-        grid[r][c] = bits[bit_i]  # first 4: 0 1 0 0
+        grid[r][c] = bits[bit_i]
         bit_i += 1
     else:
-        grid[r][c] = 1  # remainder = black (change to 0 if you want white)
+        grid[r][c] = 0   # neutral fill
 
     refresh()
     root.after(delay_ms, lambda: step(pos_i + 1))
 
-draw_finder(0, 0, reserved, grid)           # top-left
-draw_finder(0, N - 7, reserved, grid)       # top-right
-draw_finder(N - 7, 0, reserved, grid)       # bottom-left
-draw_timing(reserved, grid)
+# ----------------------
+# START
+# ----------------------
 
-print("Total bits:", len(bits))
-
+refresh()
 root.after(delay_ms, step)
 root.mainloop()
