@@ -42,7 +42,23 @@ refresh()
 x_seconds = 0.5
 delay_ms = int(x_seconds * 100)
 
-positions = [(r, c) for r in range(3) for c in range(3)]
+#positions = [(r, c) for r in range(3) for c in range(3)]
+positions = []
+
+col = N - 1
+up = True
+
+while col > 0:
+    if col == 6:  # skip timing column later (QR rule placeholder)
+        col -= 1
+
+    rows = range(N - 1, -1, -1) if up else range(N)
+    for r in rows:
+        positions.append((r, col))
+        positions.append((r, col - 1))
+
+    up = not up
+    col -= 2
 
 pattern = [
     [0, 0, 1],
@@ -54,7 +70,7 @@ def step(i=0):
     if i >= len(positions):
         return
     r, c = positions[i]
-    grid[r][c] = pattern[r][c]   # reveal this tile
+    grid[r][c] = 1
     refresh()
     root.after(delay_ms, lambda: step(i + 1))
 
