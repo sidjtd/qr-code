@@ -3,8 +3,9 @@ from PIL import Image, ImageTk
 
 tile_px = 200
 grid = [
-    [0, 1],
-    [1, 0],
+    [0, 0, 0],
+    [0, 0, 0],
+    [0, 0, 0],
 ]
 def render(grid, tile_px):
     h, w = len(grid), len(grid[0])
@@ -29,7 +30,34 @@ root.attributes("-topmost", True)
 img = render(grid, tile_px)
 photo = ImageTk.PhotoImage(img)
 
-label = tk.Label(root, image=photo)
+label = tk.Label(root)
 label.pack()
 
+def refresh():
+    img = render(grid, tile_px)
+    photo = ImageTk.PhotoImage(img)
+    label.config(image=photo)
+    label.image = photo  # keep reference so it doesn't disappear
+
+refresh()
+x_seconds = 0.5
+delay_ms = int(x_seconds * 100)
+
+positions = [(r, c) for r in range(3) for c in range(3)]
+
+pattern = [
+    [0, 0, 1],
+    [0, 1, 0],
+    [1, 0, 0],
+]
+
+def step(i=0):
+    if i >= len(positions):
+        return
+    r, c = positions[i]
+    grid[r][c] = pattern[r][c]   # reveal this tile
+    refresh()
+    root.after(delay_ms, lambda: step(i + 1))
+
+root.after(delay_ms, step)
 root.mainloop()
