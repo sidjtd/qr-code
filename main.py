@@ -2,6 +2,10 @@
 import tkinter as tk
 from PIL import Image, ImageTk
 
+#Import my modules
+from render import render
+from draw_finder import draw_finder
+
 #Grid numbers total
 N = 21
 
@@ -11,32 +15,19 @@ tile_px = 20
 grid = [[0 for _ in range(N)] for _ in range(N)]
 reserved = [[False for _ in range(N)] for _ in range(N)]
 
-
-#Block off space
+####### Block off space
 for r in range(7):
     for c in range(7):
         reserved[r][c] = True
         #grid[r][c] = 1   # draw it black so you SEE it
 
-def render(grid, tile_px):
-    h, w = len(grid), len(grid[0])
-    img = Image.new("RGB", (w * tile_px, h * tile_px), "white")
-    px = img.load()
-    for r in range(h):
-        for c in range(w):
-            color = (0, 0, 0) if grid[r][c] == 1 else (255, 255, 255)
-            x0, y0 = c * tile_px, r * tile_px
-            for y in range(y0, y0 + tile_px):
-                for x in range(x0, x0 + tile_px):
-                    px[x, y] = color
-    return img
-
+#Get my window going
 root = tk.Tk()
-root.title("White Tile")
-
+root.title("QR Code")
 root.lift()
+
+#Keep window sticking to the top
 root.attributes("-topmost", True)
-#root.after(200, lambda: root.attributes("-topmost", False))
 
 img = render(grid, tile_px)
 photo = ImageTk.PhotoImage(img)
@@ -88,6 +79,9 @@ def step(i=0):
     refresh()
     root.after(delay_ms, lambda: step(i + 1))
 
+draw_finder(0, 0, reserved, grid)           # top-left
+draw_finder(0, N - 7, reserved, grid)       # top-right
+draw_finder(N - 7, 0, reserved, grid)       # bottom-left
 
 root.after(delay_ms, step)
 root.mainloop()
