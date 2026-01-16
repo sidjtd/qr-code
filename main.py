@@ -5,6 +5,7 @@ from PIL import Image, ImageTk
 #Import my modules
 from render import render
 from draw_finder import draw_finder
+from draw_finder import draw_timing
 
 #Grid numbers total
 N = 21
@@ -113,6 +114,7 @@ def step(pos_i=0):
 draw_finder(0, 0, reserved, grid)           # top-left
 draw_finder(0, N - 7, reserved, grid)       # top-right
 draw_finder(N - 7, 0, reserved, grid)       # bottom-left
+draw_timing(reserved, grid)
 
 print("Total bits:", len(bits))
 

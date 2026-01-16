@@ -1,3 +1,4 @@
+'''
 import tkinter as tk
 from PIL import Image, ImageTk
 
@@ -71,3 +72,4 @@ def step(i=0):
 
 root.after(delay_ms, step)
 root.mainloop()
+'''
