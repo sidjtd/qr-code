@@ -5,12 +5,6 @@ N = 21
 
 tile_px = 20
 grid = [[0 for _ in range(N)] for _ in range(N)]
-reserved = [[False for _ in range(N)] for _ in range(N)]
-
-for r in range(7):
-    for c in range(7):
-        reserved[r][c] = True
-        #grid[r][c] = 1   # draw it black so you SEE it
 
 def render(grid, tile_px):
     h, w = len(grid), len(grid[0])
@@ -45,7 +39,7 @@ def refresh():
     label.image = photo  # keep reference so it doesn't disappear
 
 refresh()
-x_seconds = 0.1
+x_seconds = 0.5
 delay_ms = int(x_seconds * 100)
 
 #positions = [(r, c) for r in range(3) for c in range(3)]
@@ -66,22 +60,14 @@ while col > 0:
     up = not up
     col -= 2
 
-def step(i=0):
-    # advance i until we find a non-reserved cell
-    while i < len(positions):
-        r, c = positions[i]
-        if not reserved[r][c]:
-            break
-        i += 1
 
+def step(i=0):
     if i >= len(positions):
         return
-
     r, c = positions[i]
     grid[r][c] = 1
     refresh()
     root.after(delay_ms, lambda: step(i + 1))
-
 
 root.after(delay_ms, step)
 root.mainloop()
